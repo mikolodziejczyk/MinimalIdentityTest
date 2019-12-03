@@ -6,7 +6,7 @@ using System.Web;
 
 namespace MinimalIdentityTest.Models
 {
-    public class ChagePasswordVM
+    public class ChangePasswordVM
     {
         [Required]
         [DataType(DataType.Password)]

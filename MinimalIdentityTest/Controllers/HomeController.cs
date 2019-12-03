@@ -44,31 +44,36 @@ namespace MinimalIdentityTest.Controllers
             return View();
         }
 
-        public ActionResult Register(string userName, string password)
+        [HttpGet]
+        public ActionResult Register()
         {
-            // Default UserStore constructor uses the default connection string named: DefaultConnection
-            var userStore = new UserStore<IdentityUser>();
-            var manager = new UserManager<IdentityUser>(userStore);
+            return View(new RegisterVM());
+        }
 
-            IdentityUser user = new IdentityUser() { UserName = userName };
-            IdentityResult result = manager.Create(user, password);
+
+        [HttpPost]
+        public ActionResult Register(RegisterVM model)
+        {
+            IdentityUser user = new IdentityUser() { UserName = model.Email, Email = model.Email };
+            IdentityResult result = userManager.Create(user, model.Password);
 
             string r;
             
             if (result.Succeeded)
             {
                 var authenticationManager = HttpContext.GetOwinContext().Authentication;
-                var userIdentity = manager.CreateIdentity(user, DefaultAuthenticationTypes.ApplicationCookie);
+                var userIdentity = userManager.CreateIdentity(user, DefaultAuthenticationTypes.ApplicationCookie);
                 authenticationManager.SignIn(new AuthenticationProperties() { }, userIdentity);
 
-                r = string.Format("User {0} was created successfully!", user.UserName);
+                // r = string.Format("User {0} was created successfully!", user.UserName);
+                return RedirectToAction("Index");
             }
             else
             {
-                r = result.Errors.FirstOrDefault();
+                ModelState.AddModelError("", result.Errors.FirstOrDefault());
             }
 
-            return Content(r);
+            return View(model);
         }
 
         [HttpGet]
@@ -108,11 +113,11 @@ namespace MinimalIdentityTest.Controllers
         [HttpGet]
         public ActionResult ChangePassword()
         {
-            return View(new ChagePasswordVM());
+            return View(new ChangePasswordVM());
         }
 
         [HttpPost]
-        public ActionResult ChangePassword(ChagePasswordVM model)
+        public ActionResult ChangePassword(ChangePasswordVM model)
         {
             if (ModelState.IsValid)
             {
