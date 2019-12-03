@@ -109,8 +109,7 @@ namespace MinimalIdentityTest.Controllers
         {
             if (ModelState.IsValid)
             {
-                UserStore<IdentityUser> userStore = new UserStore<IdentityUser>();
-                UserManager<IdentityUser> userManager = new UserManager<IdentityUser>(userStore);
+                UserManager<IdentityUser> userManager = UserManagerFactory.Create();
                 string userId = User.Identity.GetUserId<string>();
 
                 IdentityResult identityResult = userManager.ChangePassword(userId, model.CurrentPassword, model.NewPassword);
