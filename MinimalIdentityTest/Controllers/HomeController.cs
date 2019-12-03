@@ -15,6 +15,13 @@ namespace MinimalIdentityTest.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly ApplicationUserManager userManager;
+
+        public HomeController(ApplicationUserManager userManager)
+        {
+            this.userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+        }
+
         public ActionResult Index()
         {
             return View();
@@ -109,7 +116,6 @@ namespace MinimalIdentityTest.Controllers
         {
             if (ModelState.IsValid)
             {
-                UserManager<IdentityUser> userManager = UserManagerFactory.Create();
                 string userId = User.Identity.GetUserId<string>();
 
                 IdentityResult identityResult = userManager.ChangePassword(userId, model.CurrentPassword, model.NewPassword);

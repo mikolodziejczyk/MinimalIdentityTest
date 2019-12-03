@@ -7,21 +7,22 @@ using System.Web;
 
 namespace MinimalIdentityTest
 {
-    public class UserManagerFactory
+    public class ApplicationUserManager : UserManager<IdentityUser>
     {
-        public static UserManager<IdentityUser> Create()
-        {
-            UserStore<IdentityUser> userStore = new UserStore<IdentityUser>();
-            UserManager<IdentityUser> manager = new UserManager<IdentityUser>(userStore);
+        private readonly UserStore<IdentityUser> userStore;
 
-            manager.UserValidator = new UserValidator<IdentityUser>(manager)
+        public ApplicationUserManager(UserStore<IdentityUser> userStore) : base(userStore)
+        {
+            this.userStore = userStore ?? throw new ArgumentNullException(nameof(userStore));
+
+            this.UserValidator = new UserValidator<IdentityUser>(this)
             {
                 AllowOnlyAlphanumericUserNames = false,
                 RequireUniqueEmail = false
             };
 
             // Configure validation logic for passwords
-            manager.PasswordValidator = new PasswordValidator
+            this.PasswordValidator = new PasswordValidator
             {
                 RequiredLength = 6,
                 RequireNonLetterOrDigit = false,
@@ -31,11 +32,10 @@ namespace MinimalIdentityTest
             };
 
             // Configure user lockout defaults
-            manager.UserLockoutEnabledByDefault = true;
-            manager.DefaultAccountLockoutTimeSpan = TimeSpan.FromMinutes(5);
-            manager.MaxFailedAccessAttemptsBeforeLockout = 5;
-
-            return manager;
+            this.UserLockoutEnabledByDefault = true;
+            this.DefaultAccountLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            this.MaxFailedAccessAttemptsBeforeLockout = 5;
         }
+
     }
 }
