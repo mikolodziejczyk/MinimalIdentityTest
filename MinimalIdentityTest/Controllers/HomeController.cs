@@ -10,16 +10,19 @@ using Microsoft.Owin.Security;
 using Microsoft.AspNet.Identity.Owin;
 using System.Security.Claims;
 using MinimalIdentityTest.Models;
+using System.Threading.Tasks;
 
 namespace MinimalIdentityTest.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ApplicationUserManager userManager;
+        private readonly ApplicationSignInManager signInManager;
 
-        public HomeController(ApplicationUserManager userManager)
+        public HomeController(ApplicationUserManager userManager, ApplicationSignInManager signInManager)
         {
             this.userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            this.signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
         }
 
         public ActionResult Index()
@@ -56,8 +59,6 @@ namespace MinimalIdentityTest.Controllers
         {
             IdentityUser user = new IdentityUser() { UserName = model.Email, Email = model.Email };
             IdentityResult result = userManager.Create(user, model.Password);
-
-            string r;
             
             if (result.Succeeded)
             {
@@ -77,29 +78,45 @@ namespace MinimalIdentityTest.Controllers
         }
 
         [HttpGet]
-        public ActionResult SignIn()
+        public ActionResult SignIn(string returnUrl)
         {
-            return View();
+            ViewBag.ReturnUrl = returnUrl;
+            return View(new SignInVM());
         }
 
         [HttpPost]
-        public ActionResult SignIn(string UserName, string Password)
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> SignIn(SignInVM model, string returnUrl)
         {
-            UserStore<IdentityUser> userStore = new UserStore<IdentityUser>();
-            UserManager<IdentityUser> userManager = new UserManager<IdentityUser>(userStore);
-            var user = userManager.Find(UserName, Password);
-
-            if (user != null)
+            if (!ModelState.IsValid)
             {
-                IAuthenticationManager authenticationManager = HttpContext.GetOwinContext().Authentication;
-                ClaimsIdentity userIdentity = userManager.CreateIdentity(user, DefaultAuthenticationTypes.ApplicationCookie);
-
-                authenticationManager.SignIn(new AuthenticationProperties() { IsPersistent = false }, userIdentity);
-                return RedirectToAction("Index");
+                return View(model);
             }
-            else
+
+            IdentityUser user = userManager.FindByName(model.UserName);
+
+            if (user.AccessFailedCount > 3)
             {
-                return Content("Invalid username or password.");
+                // require captcha
+            }
+
+            // This doesn't count login failures towards account lockout
+            // To enable password failures to trigger account lockout, change to shouldLockout: true
+            var result = await signInManager.PasswordSignInAsync(model.UserName, model.Password, isPersistent: model.RememberMe, shouldLockout: true);
+            switch (result)
+            {
+                case SignInStatus.Success:
+                    return RedirectToAction("Index", "Home");
+                    // return Redirect(returnUrl);
+                //case SignInStatus.LockedOut:
+                //    return View("Lockout");
+                //case SignInStatus.RequiresVerification:
+                //    return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+                case SignInStatus.Failure:
+                default:
+                    ModelState.AddModelError("", "Invalid login attempt.");
+                    return View(model);
             }
         }
 

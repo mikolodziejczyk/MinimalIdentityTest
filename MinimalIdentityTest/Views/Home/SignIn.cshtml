@@ -1,4 +1,4 @@
-﻿@model MinimalIdentityTest.Models.SignIn
+﻿@model MinimalIdentityTest.Models.SignInVM
 
 @{
     ViewBag.Title = "SignIn";
@@ -8,12 +8,12 @@
 <h2>SignIn</h2>
 
 
-@using (Html.BeginForm())
+@using (Html.BeginForm("SignIn", "Home", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post))
 {
     @Html.AntiForgeryToken()
     
     <div class="form-horizontal">
-        <h4>SignIn</h4>
+        <h4>SignInVM</h4>
         <hr />
         @Html.ValidationSummary(true, "", new { @class = "text-danger" })
         <div class="form-group">
@@ -29,6 +29,16 @@
             <div class="col-md-10">
                 @Html.EditorFor(model => model.Password, new { htmlAttributes = new { @class = "form-control" } })
                 @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.RememberMe, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.RememberMe)
+                    @Html.ValidationMessageFor(model => model.RememberMe, "", new { @class = "text-danger" })
+                </div>
             </div>
         </div>
 

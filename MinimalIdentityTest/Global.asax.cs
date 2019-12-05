@@ -31,7 +31,7 @@ namespace MinimalIdentityTest
 
             builder.Register<UserStore<IdentityUser>>((c) => new UserStore<IdentityUser>()).InstancePerRequest();
             builder.RegisterType<ApplicationUserManager>().AsSelf().InstancePerRequest();
-
+            builder.Register((c) => HttpContext.Current.GetOwinContext().Authentication).ExternallyOwned();
 
             // here we can add code for ModelBinders etc.
 
