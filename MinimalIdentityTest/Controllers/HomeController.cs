@@ -107,8 +107,7 @@ namespace MinimalIdentityTest.Controllers
             switch (result)
             {
                 case SignInStatus.Success:
-                    return RedirectToAction("Index", "Home");
-                    // return Redirect(returnUrl);
+                    return RedirectToLocal(returnUrl);
                 //case SignInStatus.LockedOut:
                 //    return View("Lockout");
                 //case SignInStatus.RequiresVerification:
@@ -155,5 +154,15 @@ namespace MinimalIdentityTest.Controllers
                 return View(model);
             }
         }
+
+        private ActionResult RedirectToLocal(string returnUrl)
+        {
+            if (Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+            return RedirectToAction("Index", "Home");
+        }
+
     }
 }
