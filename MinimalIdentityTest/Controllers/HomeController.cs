@@ -11,6 +11,7 @@ using Microsoft.AspNet.Identity.Owin;
 using System.Security.Claims;
 using MinimalIdentityTest.Models;
 using System.Threading.Tasks;
+using System.Data.Entity;
 
 namespace MinimalIdentityTest.Controllers
 {
@@ -59,7 +60,7 @@ namespace MinimalIdentityTest.Controllers
         {
             IdentityUser user = new IdentityUser() { UserName = model.Email, Email = model.Email };
             IdentityResult result = userManager.Create(user, model.Password);
-            
+
             if (result.Succeeded)
             {
                 var authenticationManager = HttpContext.GetOwinContext().Authentication;
@@ -164,5 +165,30 @@ namespace MinimalIdentityTest.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        public ActionResult EnsureRoles()
+        {
+            var roleManager = new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(new IdentityDbContext()));
+
+
+            string roleName = "Admin";
+
+            if (!roleManager.RoleExists(roleName))
+            {
+                var role = new IdentityRole();
+                role.Name = roleName;
+                roleManager.Create(role);
+
+            }
+
+            // bool isInRole = userManager.IsInRole(this.User.Identity.GetUserId(), roleName);
+            // string[] roles = userManager.GetRoles(this.User.Identity.GetUserId()).ToArray();
+
+            if (!this.User.IsInRole(roleName)) // IsInRole doesn't work.
+            {
+                userManager.AddToRole<IdentityUser, string>(this.User.Identity.GetUserId(), roleName);
+            }
+
+            return Content("OK");
+        }
     }
 }
