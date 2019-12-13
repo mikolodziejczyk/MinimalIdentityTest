@@ -201,11 +201,17 @@ namespace MinimalIdentityTest.Controllers
             // bool isInRole = userManager.IsInRole(this.User.Identity.GetUserId(), roleName);
             // string[] roles = userManager.GetRoles(this.User.Identity.GetUserId()).ToArray();
 
-            if (!this.User.IsInRole(roleName)) // IsInRole doesn't work.
+            if (!this.User.IsInRole(roleName))
             {
                 userManager.AddToRole<ApplicationUser, string>(this.User.Identity.GetUserId(), roleName);
             }
 
+            return Content("OK");
+        }
+
+        public ActionResult ForceLogout()
+        {
+            userManager.UpdateSecurityStamp("681042de-0408-4700-85db-3de2d0bd967c");
             return Content("OK");
         }
     }

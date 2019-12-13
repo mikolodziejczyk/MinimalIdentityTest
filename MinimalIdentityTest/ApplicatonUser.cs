@@ -23,6 +23,8 @@ namespace MinimalIdentityTest
 
             userIdentity.AddClaim(new Claim("ComanyDaxCode", this.CompanyDaxCode));
 
+            if (IsDisabled) throw new InvalidOperationException("The currently logged-in user has been disabled.");
+
             return userIdentity;
         }
     }
