@@ -24,6 +24,5 @@ namespace MinimalIdentityTest
             return user.GenerateUserIdentityAsync((ApplicationUserManager)UserManager);
         }
 
-
     }
 }

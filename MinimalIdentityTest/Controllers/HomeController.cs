@@ -102,6 +102,20 @@ namespace MinimalIdentityTest.Controllers
                 // require captcha
             }
 
+            if (!user.IsApproved)
+            {
+                ModelState.AddModelError("", "The user has not been yet approved by the administrator.");
+                return View(model);
+            }
+
+            if (user.IsDisabled)
+            {
+                ModelState.AddModelError("", "The user has been disabled. You cannot log in.");
+                return View(model);
+            }
+
+
+
             // This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, change to shouldLockout: true
             var result = await signInManager.PasswordSignInAsync(model.UserName, model.Password, isPersistent: model.RememberMe, shouldLockout: true);
