@@ -29,7 +29,7 @@ namespace MinimalIdentityTest
             builder.RegisterAssemblyTypes(assemblies).AsSelf();
             // any othe registration code
 
-            builder.Register<UserStore<IdentityUser>>((c) => new UserStore<IdentityUser>()).InstancePerRequest();
+            builder.Register<UserStore<ApplicationUser>>((c) => new UserStore<ApplicationUser>(new ApplicationDbContext())).InstancePerRequest();
             builder.RegisterType<ApplicationUserManager>().AsSelf().InstancePerRequest();
             builder.Register((c) => HttpContext.Current.GetOwinContext().Authentication).ExternallyOwned();
             builder.RegisterType<ApplicationSignInManager>().AsSelf().InstancePerRequest();

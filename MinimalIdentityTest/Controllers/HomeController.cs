@@ -58,7 +58,7 @@ namespace MinimalIdentityTest.Controllers
         [HttpPost]
         public ActionResult Register(RegisterVM model)
         {
-            IdentityUser user = new IdentityUser() { UserName = model.Email, Email = model.Email };
+            ApplicationUser user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
             IdentityResult result = userManager.Create(user, model.Password);
 
             if (result.Succeeded)
@@ -95,7 +95,7 @@ namespace MinimalIdentityTest.Controllers
                 return View(model);
             }
 
-            IdentityUser user = userManager.FindByName(model.UserName);
+            ApplicationUser user = userManager.FindByName(model.UserName);
 
             if (user.AccessFailedCount > 3)
             {
@@ -185,7 +185,7 @@ namespace MinimalIdentityTest.Controllers
 
             if (!this.User.IsInRole(roleName)) // IsInRole doesn't work.
             {
-                userManager.AddToRole<IdentityUser, string>(this.User.Identity.GetUserId(), roleName);
+                userManager.AddToRole<ApplicationUser, string>(this.User.Identity.GetUserId(), roleName);
             }
 
             return Content("OK");

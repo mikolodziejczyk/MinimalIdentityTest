@@ -7,15 +7,15 @@ using System.Web;
 
 namespace MinimalIdentityTest
 {
-    public class ApplicationUserManager : UserManager<IdentityUser>
+    public class ApplicationUserManager : UserManager<ApplicationUser>
     {
-        private readonly UserStore<IdentityUser> userStore;
+        private readonly UserStore<ApplicationUser> userStore;
 
-        public ApplicationUserManager(UserStore<IdentityUser> userStore) : base(userStore)
+        public ApplicationUserManager(UserStore<ApplicationUser> userStore) : base(userStore)
         {
             this.userStore = userStore ?? throw new ArgumentNullException(nameof(userStore));
 
-            this.UserValidator = new UserValidator<IdentityUser>(this)
+            this.UserValidator = new UserValidator<ApplicationUser>(this)
             {
                 AllowOnlyAlphanumericUserNames = false,
                 RequireUniqueEmail = false
