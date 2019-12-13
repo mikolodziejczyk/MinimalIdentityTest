@@ -45,6 +45,9 @@ namespace MinimalIdentityTest.Controllers
         {
             ViewBag.Message = "Your contact page.";
 
+            Claim companyDaxCode = ((ClaimsIdentity)User.Identity).FindFirst("ComanyDaxCode");
+            string daxCode = companyDaxCode.Value;
+
             return View();
         }
 
