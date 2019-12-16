@@ -43,14 +43,7 @@ namespace MinimalIdentityTest
             manager.DefaultAccountLockoutTimeSpan = TimeSpan.FromMinutes(5);
             manager.MaxFailedAccessAttemptsBeforeLockout = 5;
 
-
-            manager.RegisterTwoFactorProvider("Email Code", new EmailTokenProvider<ApplicationUser>
-            {
-                Subject = "Security Code",
-                BodyFormat = "Your security code is {0}"
-            });
             manager.EmailService = new EmailService();
-
 
             var dataProtectionProvider = options.DataProtectionProvider;
             if (dataProtectionProvider != null)
