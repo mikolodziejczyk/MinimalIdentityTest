@@ -31,7 +31,7 @@ namespace MinimalIdentityTest.Controllers
             return View();
         }
 
-        [Authorize(Roles="Admin")]
+        [Authorize(Roles = "Admin")]
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";
@@ -83,6 +83,51 @@ namespace MinimalIdentityTest.Controllers
         }
 
         [HttpGet]
+        public ActionResult RegisterWithEmail()
+        {
+            return View("Register", new RegisterVM());
+        }
+
+
+        [HttpPost]
+        public ActionResult RegisterWithEmail(RegisterVM model)
+        {
+            ApplicationUser user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
+            IdentityResult result = userManager.Create(user, model.Password);
+
+            if (result.Succeeded)
+            {
+                string code = userManager.GenerateEmailConfirmationToken(user.Id);
+                // string callbackUrl = IdentityHelper.GetUserConfirmationRedirectUrl(code, user.Id, Request);
+                // manager.SendEmail(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>.");
+
+                var callbackUrl = Url.Action("ConfirmEmail", "Home", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                userManager.SendEmail(user.Id, "Confirm your account",   "Please confirm your account by clicking this link: <a href=\"" + callbackUrl + "\">link</a>");
+
+                // r = string.Format("User {0} was created successfully!", user.UserName);
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                ModelState.AddModelError("", result.Errors.FirstOrDefault());
+            }
+
+            return View("Register", model);
+        }
+
+
+        [AllowAnonymous]
+        public async Task<ActionResult> ConfirmEmail(string userId, string code)
+        {
+            if (userId == null || code == null)
+            {
+                return View("Error");
+            }
+            var result = await userManager.ConfirmEmailAsync(userId, code);
+            return View(result.Succeeded ? "ConfirmEmail" : "Error");
+        }
+
+        [HttpGet]
         public ActionResult SignIn(string returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
@@ -104,6 +149,13 @@ namespace MinimalIdentityTest.Controllers
             if (user.AccessFailedCount > 3)
             {
                 // require captcha
+            }
+
+
+            if (!user.EmailConfirmed)
+            {
+                ModelState.AddModelError("", "Your e-mail has not been confirmed. Please find an e-mail in your mailbox and click the link we have sent you to confirm your e-mail.");
+                return View(model);
             }
 
             if (!user.IsApproved)

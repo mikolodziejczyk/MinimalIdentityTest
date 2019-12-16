@@ -1,28 +1,35 @@
 ﻿using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace MinimalIdentityTest
 {
     public class ApplicationUserManager : UserManager<ApplicationUser>
     {
-        private readonly UserStore<ApplicationUser> userStore;
-
         public ApplicationUserManager(UserStore<ApplicationUser> userStore) : base(userStore)
         {
-            this.userStore = userStore ?? throw new ArgumentNullException(nameof(userStore));
 
-            this.UserValidator = new UserValidator<ApplicationUser>(this)
+        }
+
+
+        public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context)
+        {
+            var manager = new ApplicationUserManager(new UserStore<ApplicationUser>(context.Get<ApplicationDbContext>()));
+
+            manager.UserValidator = new UserValidator<ApplicationUser>(manager)
             {
                 AllowOnlyAlphanumericUserNames = false,
                 RequireUniqueEmail = false
             };
 
             // Configure validation logic for passwords
-            this.PasswordValidator = new PasswordValidator
+            manager.PasswordValidator = new PasswordValidator
             {
                 RequiredLength = 6,
                 RequireNonLetterOrDigit = false,
@@ -32,10 +39,41 @@ namespace MinimalIdentityTest
             };
 
             // Configure user lockout defaults
-            this.UserLockoutEnabledByDefault = true;
-            this.DefaultAccountLockoutTimeSpan = TimeSpan.FromMinutes(5);
-            this.MaxFailedAccessAttemptsBeforeLockout = 5;
+            manager.UserLockoutEnabledByDefault = true;
+            manager.DefaultAccountLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            manager.MaxFailedAccessAttemptsBeforeLockout = 5;
+
+
+            manager.RegisterTwoFactorProvider("Email Code", new EmailTokenProvider<ApplicationUser>
+            {
+                Subject = "Security Code",
+                BodyFormat = "Your security code is {0}"
+            });
+            manager.EmailService = new EmailService();
+
+
+            var dataProtectionProvider = options.DataProtectionProvider;
+            if (dataProtectionProvider != null)
+            {
+                manager.UserTokenProvider =
+                    new DataProtectorTokenProvider<ApplicationUser>(dataProtectionProvider.Create("ASP.NET Identity"));
+            }
+
+            return manager;
         }
 
     }
+
+    public class EmailService : IIdentityMessageService
+    {
+        public Task SendAsync(IdentityMessage message)
+        {
+            // Plug in your email service here to send an email.
+            return Task.FromResult(0);
+        }
+
+
+    }
+
+
 }

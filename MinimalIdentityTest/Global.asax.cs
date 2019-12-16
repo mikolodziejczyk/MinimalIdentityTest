@@ -11,6 +11,7 @@ using System.Web.Compilation;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using Microsoft.AspNet.Identity.Owin;
 
 namespace MinimalIdentityTest
 {
@@ -30,7 +31,7 @@ namespace MinimalIdentityTest
             // any othe registration code
 
             builder.Register<UserStore<ApplicationUser>>((c) => new UserStore<ApplicationUser>(new ApplicationDbContext())).InstancePerRequest();
-            builder.RegisterType<ApplicationUserManager>().AsSelf().InstancePerRequest();
+            builder.Register<ApplicationUserManager>((c) => HttpContext.Current.GetOwinContext().GetUserManager<ApplicationUserManager>()).ExternallyOwned();
             builder.Register((c) => HttpContext.Current.GetOwinContext().Authentication).ExternallyOwned();
             builder.RegisterType<ApplicationSignInManager>().AsSelf().InstancePerRequest();
 

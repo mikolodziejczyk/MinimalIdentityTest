@@ -219,6 +219,7 @@
     <Content Include="Views\Home\ChangePassword.cshtml" />
     <Content Include="Views\Home\Register.cshtml" />
     <Content Include="Views\Home\SignIn.cshtml" />
+    <Content Include="Views\Home\ConfirmEmail.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
