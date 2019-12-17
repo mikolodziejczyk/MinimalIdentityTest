@@ -55,6 +55,8 @@ namespace MinimalIdentityTest
             return manager;
         }
 
+        public UserStore<ApplicationUser> UserStore { get => (UserStore<ApplicationUser>)this.Store; }
+
     }
 
     public class EmailService : IIdentityMessageService

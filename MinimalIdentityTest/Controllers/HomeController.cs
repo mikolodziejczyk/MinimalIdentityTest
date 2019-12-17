@@ -12,6 +12,7 @@ using System.Security.Claims;
 using MinimalIdentityTest.Models;
 using System.Threading.Tasks;
 using System.Data.Entity;
+using System.Net;
 
 namespace MinimalIdentityTest.Controllers
 {
@@ -100,7 +101,7 @@ namespace MinimalIdentityTest.Controllers
                 string code = userManager.GenerateEmailConfirmationToken(user.Id);
 
                 var callbackUrl = Url.Action("ConfirmEmail", "Home", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                userManager.SendEmail(user.Id, "Confirm your account",   "Please confirm your account by clicking this link: <a href=\"" + callbackUrl + "\">link</a>");
+                userManager.SendEmail(user.Id, "Confirm your account", "Please confirm your account by clicking this link: <a href=\"" + callbackUrl + "\">link</a>");
 
                 return RedirectToAction("Index");
             }
@@ -352,6 +353,68 @@ namespace MinimalIdentityTest.Controllers
         {
             userManager.UpdateSecurityStamp("681042de-0408-4700-85db-3de2d0bd967c");
             return Content("OK");
+        }
+
+        public ActionResult ToggleDisabledForUser(string id, bool isDisabled = true)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            ApplicationUser user = userManager.FindById(id);
+
+            if (user == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            user.IsDisabled = isDisabled;
+
+            IdentityResult r = userManager.Update(user);
+
+            if (!r.Succeeded)
+            {
+                string[] erorrs = r.Errors.ToArray();
+                // log them or return
+                throw new InvalidOperationException();
+            }
+
+            return Content("OK");
+        }
+
+        public async Task<ActionResult> Delete(string id)
+        {
+
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            var user = await userManager.FindByIdAsync(id);
+            var logins = user.Logins;
+            var rolesForUser = await userManager.GetRolesAsync(id);
+
+            ApplicationDbContext context = (ApplicationDbContext)userManager.UserStore.Context;
+
+            using (var transaction = context.Database.BeginTransaction())
+            {
+                foreach (var login in logins.ToList())
+                {
+                    await userManager.RemoveLoginAsync(login.UserId, new UserLoginInfo(login.LoginProvider, login.ProviderKey));
+                }
+
+                foreach (var role in rolesForUser.ToList())
+                {
+                    var result = await userManager.RemoveFromRoleAsync(user.Id, role);
+                }
+
+                await userManager.DeleteAsync(user);
+                transaction.Commit();
+            }
+
+            return RedirectToAction("Index");
+
         }
     }
 }
